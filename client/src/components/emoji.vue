@@ -289,7 +289,7 @@
 <script lang="ts">
   import { Component, Ref, Vue } from 'vue-property-decorator'
   import { directive as onClickaway } from 'vue-clickaway'
-  import { get } from '../utils/localstorage'
+  import { get } from '../utils/sessionstorage'
 
   @Component({
     name: 'neko-emoji',

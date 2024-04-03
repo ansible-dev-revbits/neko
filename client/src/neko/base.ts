@@ -10,6 +10,7 @@ import {
   SignalOfferPayload,
   SignalAnswerMessage,
 } from './messages'
+import { get } from '~/utils/sessionstorage'
 
 export interface BaseEvents {
   info: (...message: any[]) => void
@@ -27,7 +28,6 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
   protected _state: RTCIceConnectionState = 'disconnected'
   protected _id = ''
   protected _candidates: RTCIceCandidate[] = []
-
   get id() {
     return this._id
   }
@@ -64,7 +64,7 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
 
     try {
       this._ws = new WebSocket(`${url}?password=${encodeURIComponent(password)}`)
-      this.emit('debug', `connecting to ${this._ws.url}`)
+      this.emit('debug', `connecting to ${this._ws.url} ${get('socketToken', 'string')}`)
       this._ws.onmessage = this.onMessage.bind(this)
       this._ws.onerror = () => this.onError.bind(this)
       this._ws.onclose = () => this.onDisconnected.bind(this, new Error('websocket closed'))
@@ -82,40 +82,40 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
 
     if (this._ws) {
       // reset all events
-      this._ws.onmessage = () => {}
-      this._ws.onerror = () => {}
-      this._ws.onclose = () => {}
+      this._ws.onmessage = () => { }
+      this._ws.onerror = () => { }
+      this._ws.onclose = () => { }
 
       try {
         this._ws.close()
-      } catch (err) {}
+      } catch (err) { }
 
       this._ws = undefined
     }
 
     if (this._channel) {
       // reset all events
-      this._channel.onmessage = () => {}
-      this._channel.onerror = () => {}
-      this._channel.onclose = () => {}
+      this._channel.onmessage = () => { }
+      this._channel.onerror = () => { }
+      this._channel.onclose = () => { }
 
       try {
         this._channel.close()
-      } catch (err) {}
+      } catch (err) { }
 
       this._channel = undefined
     }
 
     if (this._peer) {
       // reset all events
-      this._peer.onconnectionstatechange = () => {}
-      this._peer.onsignalingstatechange = () => {}
-      this._peer.oniceconnectionstatechange = () => {}
-      this._peer.ontrack = () => {}
+      this._peer.onconnectionstatechange = () => { }
+      this._peer.onsignalingstatechange = () => { }
+      this._peer.oniceconnectionstatechange = () => { }
+      this._peer.ontrack = () => { }
 
       try {
         this._peer.close()
-      } catch (err) {}
+      } catch (err) { }
 
       this._peer = undefined
     }

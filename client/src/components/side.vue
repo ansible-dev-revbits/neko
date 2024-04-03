@@ -2,15 +2,15 @@
   <aside class="neko-menu">
     <div class="tabs-container">
       <ul>
-        <li :class="{ active: tab === 'chat' }" @click.stop.prevent="change('chat')">
+        <!-- <li :class="{ active: tab === 'chat' }" @click.stop.prevent="change('chat')">
           <i class="fas fa-comment-alt" />
           <span>{{ $t('side.chat') }}</span>
         </li>
         <li v-if="filetransferAllowed" :class="{ active: tab === 'files' }" @click.stop.prevent="change('files')">
           <i class="fas fa-file" />
           <span>{{ $t('side.files') }}</span>
-        </li>
-        <li :class="{ active: tab === 'settings' }" @click.stop.prevent="change('settings')">
+        </li> -->
+        <li :class="{ active: true }" @click.stop.prevent="change('settings')">
           <i class="fas fa-sliders-h" />
           <span>{{ $t('side.settings') }}</span>
         </li>
@@ -19,7 +19,7 @@
     <div class="page-container">
       <neko-chat v-if="tab === 'chat'" />
       <neko-files v-if="tab === 'files'" />
-      <neko-settings v-if="tab === 'settings'" />
+      <neko-settings  />
     </div>
   </aside>
 </template>

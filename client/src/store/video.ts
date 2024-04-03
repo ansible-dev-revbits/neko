@@ -1,5 +1,5 @@
 import { getterTree, mutationTree, actionTree } from 'typed-vuex'
-import { get, set } from '~/utils/localstorage'
+import { get, set } from '~/utils/sessionstorage'
 import { EVENT } from '~/neko/events'
 import { ScreenConfigurations, ScreenResolution } from '~/neko/types'
 import { accessor } from '~/store'

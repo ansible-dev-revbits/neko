@@ -17,7 +17,7 @@
           />
         </div>
         <div v-if="!videoOnly" class="room-container">
-          <neko-members />
+          <!-- <neko-members /> -->
           <div class="room-menu">
             <div class="settings">
               <neko-menu />
@@ -26,13 +26,13 @@
               <neko-controls :shakeKbd="shakeKbd" />
             </div>
             <div class="emotes">
-              <neko-emotes />
+              <!-- <neko-emotes /> -->
             </div>
           </div>
         </div>
       </main>
       <neko-side v-if="!videoOnly && side" />
-      <neko-connect v-if="!connected" />
+      <neko-connect v-if="!connected" /> <!-- <neko-connect v-if="!connected" />  -->
       <neko-about v-if="about" />
       <notifications
         v-if="!videoOnly"
@@ -204,9 +204,7 @@
 
     @Watch('volume', { immediate: true })
     onVolume(volume: number) {
-      if (new URL(location.href).searchParams.has('volume')) {
-        this.$accessor.video.setVolume(volume)
-      }
+      this.$accessor.video.setVolume(volume)
     }
 
     @Watch('hideControls', { immediate: true })

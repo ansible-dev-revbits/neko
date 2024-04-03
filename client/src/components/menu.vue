@@ -1,7 +1,7 @@
 <template>
   <ul>
-    <li><i @click.stop.prevent="about" class="fas fa-question-circle" /></li>
-    <li>
+    <!-- <li><i @click.stop.prevent="about" class="fas fa-question-circle" /></li> -->
+    <!-- <li>
       <i
         class="fas fa-shield-alt"
         v-tooltip="{
@@ -19,7 +19,7 @@
           {{ lang }}
         </option>
       </select>
-    </li>
+    </li> -->
   </ul>
 </template>
 

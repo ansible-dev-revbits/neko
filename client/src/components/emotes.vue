@@ -86,7 +86,7 @@
 
 <script lang="ts">
   import { Vue, Ref, Component } from 'vue-property-decorator'
-  import { get, set } from '../utils/localstorage'
+  import { get, set } from '../utils/sessionstorage'
 
   // @ts-ignore
   import { VueContext } from 'vue-context'

@@ -1,5 +1,5 @@
 import { getterTree, mutationTree, actionTree } from 'typed-vuex'
-import { get, set } from '~/utils/localstorage'
+import { get, set } from '~/utils/sessionstorage'
 import { accessor } from '~/store'
 
 export const namespaced = true

@@ -1,8 +1,8 @@
 <template>
   <div class="header">
-    <a href="https://github.com/m1k1o/neko" title="Github repository" target="_blank" class="neko">
-      <img src="@/assets/images/logo.svg" alt="n.eko" />
-      <span><b>n</b>.eko</span>
+    <a href="https://github.com" title="Github repository" target="_blank" class="neko">
+      <img src="@/assets/images/ZTN-white.svg" alt="revbits" />
+      <!-- <span>RevBits</span> -->
     </a>
     <ul class="menu">
       <li>
@@ -31,7 +31,7 @@
           }"
         />
       </li>
-      <li v-if="fileTransfer">
+      <!-- <li v-if="fileTransfer">
         <i
           :class="[{ disabled: !admin }, { locked: isLocked('file_transfer') }, 'fas', 'fa-file']"
           @click="toggleLock('file_transfer')"
@@ -43,7 +43,7 @@
             delay: { show: 300, hide: 100 },
           }"
         />
-      </li>
+      </li> -->
       <li>
         <span v-if="showBadge" class="badge">&bull;</span>
         <i class="fas fa-bars toggle" @click="toggleMenu" />

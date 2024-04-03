@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import { useAccessor, mutationTree, getterTree, actionTree } from 'typed-vuex'
 import { EVENT } from '~/neko/events'
 import { AdminLockResource } from '~/neko/messages'
-import { get, set } from '~/utils/localstorage'
+import { get, set } from '~/utils/sessionstorage'
 
 import * as video from './video'
 import * as chat from './chat'
