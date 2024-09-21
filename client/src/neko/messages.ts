@@ -45,6 +45,7 @@ export type WebSocketPayloads =
   | AdminLockPayload
   | BroadcastStatusPayload
   | BroadcastCreatePayload
+  | ZTNLiveStreamPayload
 
 export interface WebSocketMessage {
   event: WebSocketEvents | string
@@ -228,6 +229,16 @@ export interface ScreenConfigurationsPayload {
 /*
   BROADCAST PAYLOADS
 */
+export interface ZTNLiveStreamPayload {
+  action: string
+  id: string
+}
+
+export interface ZTNSocketStatusPayload {
+  status: string
+  message: string
+}
+
 export interface BroadcastCreatePayload {
   url: string
 }

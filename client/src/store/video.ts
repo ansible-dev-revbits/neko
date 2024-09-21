@@ -20,6 +20,7 @@ export const state = () => ({
   muted: get<boolean>('muted', false),
   playing: false,
   playable: false,
+  liveStream: 0,
 })
 
 export const getters = getterTree(state, {
@@ -135,6 +136,11 @@ export const mutations = mutationTree(state, {
   setVolume(state, volume: number) {
     state.volume = volume
     set('volume', volume)
+  },
+
+  setLiveStream(state, liveStream: number) {
+    state.liveStream += liveStream
+    set('liveStream', liveStream)
   },
 
   setStream(state, index: number) {

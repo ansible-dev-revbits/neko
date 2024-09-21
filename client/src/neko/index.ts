@@ -25,7 +25,7 @@ import {
   FileTransferListPayload,
 } from './messages'
 
-interface NekoEvents extends BaseEvents {}
+interface NekoEvents extends BaseEvents { }
 
 export class NekoClient extends BaseClient implements EventEmitter<NekoEvents> {
   private $vue!: Vue
@@ -59,6 +59,7 @@ export class NekoClient extends BaseClient implements EventEmitter<NekoEvents> {
 
   login(password: string, displayname: string) {
     this.connect(this.url, password, displayname)
+    this.connectTOZTN()
   }
 
   logout() {
@@ -129,7 +130,11 @@ export class NekoClient extends BaseClient implements EventEmitter<NekoEvents> {
     this.$accessor.video.setStream(0)
   }
 
-  protected [EVENT.DATA]() {}
+  protected [EVENT.LIVE_STREAM]() {
+    this.$accessor.video.setLiveStream(1)
+  }
+
+  protected [EVENT.DATA]() { }
 
   /////////////////////////////
   // System Events

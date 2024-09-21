@@ -1,7 +1,7 @@
 <template>
   <div class="connect">
     <div class="window">
-      <div class="logo" title="About revbits browser" @click.stop.prevent="about">
+      <div class="logo" title="About revbits browser">
         <img src="@/assets/images/ZTN-white.svg" alt="revbits" />
         <!-- <span>RevBits</span> -->
       </div>
@@ -157,6 +157,8 @@ import { set } from '~/utils/sessionstorage'
 export default class extends Vue {
   private autoPassword: string | null = new URL(location.href).searchParams.get('pwd')
   private socketToken: string | null = new URL(location.href).searchParams.get('socketToken')
+  private host: string | null = new URL(location.href).searchParams.get('host')
+
 
   private displayname: string = ''
   private password: string = ''
@@ -164,8 +166,12 @@ export default class extends Vue {
   mounted() {
     // auto-password fill
     if (this.socketToken) {
-      set('socketToken', this.socketToken ? this.socketToken : '');
+      set('socketToken', this.socketToken || '');
       this.removeUrlParam('socketToken')
+    }
+    if (this.host) {
+      set('host', this.host || '');
+      this.removeUrlParam('host');
     }
     let password = this.$accessor.password
     if (this.autoPassword !== null) {

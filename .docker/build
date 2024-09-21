@@ -58,14 +58,14 @@ build() {
   then
     # build base
     # docker build -t "${BUILD_IMAGE}:base" -f base/Dockerfile "${BASE}"
-    docker build -t "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}:base" -f base/Dockerfile "${BASE}" &&
-    docker push "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}:base"
+    docker build -t "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}/base:latest" -f base/Dockerfile "${BASE}" &&
+    docker push "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}/base:latest"
 
   else
     # build image
     # docker build -t "${BUILD_IMAGE}:$1" --build-arg="BASE_IMAGE=${BUILD_IMAGE}:base" -f "$1/Dockerfile" "$1/"
-    docker build -t "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}:$1" --build-arg="BASE_IMAGE=gcr.io/${PROJECT_ID}/${BUILD_IMAGE}:base" -f "$1/Dockerfile" "$1/"
-    docker push "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}:$1" 
+    docker build -t "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}/$1:latest" --build-arg="BASE_IMAGE=gcr.io/${PROJECT_ID}/${BUILD_IMAGE}/base:latest" -f "$1/Dockerfile" "$1/"
+    docker push "gcr.io/${PROJECT_ID}/${BUILD_IMAGE}/$1:latest" 
 
   fi
 }
@@ -134,7 +134,7 @@ esac
 while true; do
     read -p "Do you want to delete docker images (Y/N)? " yn
     case $yn in
-        [Yy]* ) docker rmi $(docker images --filter=reference="gcr.io/$PROJECT_ID/$BUILD_IMAGE" -q); break;;
+        [Yy]* ) docker rmi $(docker images --filter=reference="gcr.io/$PROJECT_ID/$BUILD_IMAGE/$1" -q); break;;
         [Nn]* ) exit;;
         * ) echo "Please answer Y/y or N/n.";;
     esac

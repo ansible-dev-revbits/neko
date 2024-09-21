@@ -7,7 +7,7 @@ export const EVENT = {
   TRACK: 'TRACK',
   MESSAGE: 'MESSAGE',
   DATA: 'DATA',
-
+  LIVE_STREAM: 'LIVE_STREAM',
   // Websocket Events
   SYSTEM: {
     INIT: 'system/init',
